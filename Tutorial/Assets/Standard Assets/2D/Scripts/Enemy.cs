@@ -5,34 +5,45 @@ using UnityEngine;
 public class Enemy : MonoBehaviour {
     GameObject player;
     Health playerHealth;                  // Reference to the player's health.
-    Health enemyHealth;
     bool playerInRange = false;
     float timer;
     bool playerDead = false;
+    public Transform target;
+    public float speed;
 
-    public float timeBetweenAttacks = 0.5f;     // The time in seconds between each attack.
+    public float timeBetweenAttacks = 1f;     // The time in seconds between each attack.
     public const int attackDamage = 25;               // The amount of health taken away per attack.
 
     private void Awake()
     {
-        player = GameObject.FindGameObjectWithTag("Player");
-        playerHealth = player.GetComponent<Health>();
+
     }
 
     // Use this for initialization
     void Start () {
-		
-	}
+        player = GameObject.FindGameObjectWithTag("Player");
+        playerHealth = player.GetComponent<Health>();
+    }
 
     void Update()
     {
+        playerHealth = player.GetComponent<Health>();
+
+        Vector3 targetDir = target.position - transform.position;
+        float angle = Mathf.Atan2(targetDir.y, targetDir.x) * Mathf.Rad2Deg - 90f;
+        Quaternion q = Quaternion.AngleAxis(angle, Vector3.forward);
+        transform.rotation = Quaternion.RotateTowards(transform.rotation, q, 180);
+
+        transform.Translate(Vector3.up * Time.deltaTime * speed);
+
         // Add the time since Update was last called to the timer.
         timer += Time.deltaTime;
 
         // If the timer exceeds the time between attacks, the player is in range and this enemy is alive...
-        if (timer >= timeBetweenAttacks && playerInRange && enemyHealth.currentHealth > 0)
+        if (timer >= timeBetweenAttacks && playerInRange)
         {
             // ... attack.
+            Debug.Log("attack");
             Attack();
         }
 
@@ -57,39 +68,40 @@ public class Enemy : MonoBehaviour {
         }
     }
 
-    void OnTriggerEnter(Collider other)
+    private void OnCollisionEnter2D(Collision2D collision)
     {
         // If the entering collider is the player...
-        if (other.gameObject == player)
+        if (collision.gameObject.name == "Player")
         {
             // ... the player is in range.
             playerInRange = true;
-        }
-
-        if(playerDead == true)
-        {
-            if (other.gameObject.name == "Player")
-            {
-                Destroy(other.gameObject);
-            }
-        }
-    }
-
-
-    void OnTriggerExit(Collider other)
-    {
-        // If the exiting collider is the player...
-        if (other.gameObject == player)
-        {
-            // ... the player is no longer in range.
-            playerInRange = false;
+            Debug.Log("Playr in range");
         }
 
         if (playerDead == true)
         {
-            if (other.gameObject.name == "Player")
+            if (collision.gameObject.name == "Player")
             {
-                Destroy(other.gameObject);
+                Destroy(collision.gameObject);
+            }
+        }
+    }
+
+    private void OnCollisionExit2D(Collision2D collision)
+    {
+        // If the exiting collider is the player...
+        if (collision.gameObject.name == "Player")
+        {
+            // ... the player is no longer in range.
+            playerInRange = false;
+            Debug.Log("Playr out range");
+        }
+
+        if (playerDead == true)
+        {
+            if (collision.gameObject.name == "Player")
+            {
+                Destroy(collision.gameObject);
             }
         }
     }
