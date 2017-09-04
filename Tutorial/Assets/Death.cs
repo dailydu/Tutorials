@@ -6,10 +6,10 @@ public class Death : MonoBehaviour {
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        //if(collision.gameObject.name == "Player")
-        //{
+        if(collision.gameObject.name == "Player")
+        {
             Destroy(collision.gameObject);
-       // }
+        }
     }
 
     // Use this for initialization
